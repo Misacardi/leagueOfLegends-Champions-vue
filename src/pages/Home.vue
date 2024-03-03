@@ -1,6 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup>
-import { onMounted, provide, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import CardList from '../components/CardList.vue'
 import Error from '../components/Error.vue'
 import axios from 'axios'
@@ -40,15 +40,6 @@ const getChampList = async () => {
 onMounted(getChampList)
 
 watch(() => [filters.value.search, filters.value.difficulty, filters.value.role], getChampList)
-
-const addFavorite = async (i) => {
-  items.value[i].favorite = !items.value[i].favorite
-  await axios.patch(`https://e971a4c5e7751391.mokky.dev/championList/${i + 1}`, {
-    favorite: items.value[i].favorite
-  })
-}
-
-provide('addFavorite', addFavorite)
 </script>
 
 <template>

@@ -1,15 +1,12 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup>
-import { inject } from 'vue'
-
 defineProps({
   id: Number,
   title: String,
   imgUrl: String,
-  favorite: Boolean
+  favorite: Boolean,
+  addFavorite: Function
 })
-
-const addFavorite = inject('addFavorite')
 </script>
 
 <template>
@@ -18,7 +15,7 @@ const addFavorite = inject('addFavorite')
     :style="{ 'background-image': 'url(' + imgUrl + ')' }"
   >
     <img
-      @click="addFavorite(id)"
+      @click="addFavorite"
       :src="!favorite ? '/star.svg' : '/star2.svg'"
       alt=""
       class="cursor-pointer duration-300"
