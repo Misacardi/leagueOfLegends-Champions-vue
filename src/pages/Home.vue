@@ -1,0 +1,101 @@
+<!-- eslint-disable vue/multi-word-component-names -->
+<script setup>
+import { onMounted, provide, ref, watch } from 'vue'
+import CardList from '../components/CardList.vue'
+import Error from '../components/Error.vue'
+import axios from 'axios'
+
+const ROLES = ['mage', 'fighter', 'assassin', 'tank', 'marksman']
+
+const items = ref([])
+const error = ref(null)
+const filters = ref({
+  difficulty: '',
+  search: '',
+  role: ''
+})
+
+const getChampList = async () => {
+  try {
+    const params = {}
+
+    if (filters.value.difficulty) {
+      params.difficulty = filters.value.difficulty
+    }
+    if (filters.value.search) {
+      params.name = `${filters.value.search}*`
+    }
+    if (filters.value.role) {
+      params.role = filters.value.role
+    }
+
+    const { data } = await axios.get('https://e971a4c5e7751391.mokky.dev/championList', {
+      params
+    })
+    items.value = data
+  } catch (e) {
+    error.value = e.message
+  }
+}
+onMounted(getChampList)
+
+watch(() => [filters.value.search, filters.value.difficulty, filters.value.role], getChampList)
+
+const addFavorite = async (i) => {
+  items.value[i].favorite = !items.value[i].favorite
+  await axios.patch(`https://e971a4c5e7751391.mokky.dev/championList/${i + 1}`, {
+    favorite: items.value[i].favorite
+  })
+}
+
+provide('addFavorite', addFavorite)
+</script>
+
+<template>
+  <div class="flex items-center justify-between gap-20 p-10 rounded-xl">
+    <h3 class="text-xl text-zinc-600">Filter Champion</h3>
+
+    <div class="flex gap-10 items-center">
+      <ul class="flex items-center gap-3 text-xl font-bold text-zinc-600">
+        Role
+        <li
+          v-for="(item, i) in ROLES"
+          :key="i"
+          class="w-9 border rounded-xl p-1 hover:bg-slate-300 duration-300 cursor-pointer"
+          @click="filters.role = item"
+        >
+          <img
+            :src="
+              'https://raw.communitydragon.org/9.4/plugins/rcp-fe-lol-champion-details/global/default/role-icon-' +
+              item +
+              '.png'
+            "
+            alt="role icon"
+          />
+        </li>
+      </ul>
+      <select v-model="filters.difficulty" class="py-2 px-3 border rounded-xl focus: outline-none">
+        <option value="">All</option>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <div class="relative">
+        <img src="/search.svg" alt="search icon" class="absolute left-3 top-3" />
+        <input
+          v-model="filters.search"
+          placeholder="Search"
+          class="border rounded-xl py-2 pl-10 outline-none focus:border-gray-400"
+          type="text"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div v-auto-animate>
+    <h2 class="flex justify-center font-bold text-3xl uppercase">Choose Champion</h2>
+    <Error v-if="error">{{ error }}</Error>
+
+    <CardList v-else :items="items" />
+  </div>
+</template>
