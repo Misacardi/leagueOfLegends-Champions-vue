@@ -15,6 +15,28 @@ const filters = ref({
   role: ''
 })
 
+const fetchFavorites = async () => {
+  try {
+    const { data } = await axios.get('https://e971a4c5e7751391.mokky.dev/favorites')
+
+    items.value = items.value.map((item) => {
+      const favorites = data.find((e) => e.parentId === item.id)
+
+      if (!favorites) {
+        return item
+      }
+
+      return {
+        ...item,
+        favorite: true,
+        favoriteId: favorites.id
+      }
+    })
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 const getChampList = async () => {
   try {
     const params = {}
@@ -32,12 +54,20 @@ const getChampList = async () => {
     const { data } = await axios.get('https://e971a4c5e7751391.mokky.dev/championList', {
       params
     })
-    items.value = data
+    items.value = data.map((item) => {
+      return {
+        ...item,
+        favorite: false
+      }
+    })
   } catch (e) {
     error.value = e.message
   }
 }
-onMounted(getChampList)
+onMounted(async () => {
+  await getChampList()
+  await fetchFavorites()
+})
 
 watch(() => [filters.value.search, filters.value.difficulty, filters.value.role], getChampList)
 </script>
